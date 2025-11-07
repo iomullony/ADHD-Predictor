@@ -122,23 +122,7 @@ potential classification of ADHD-related brain activity.
 
 \section{Data Description}\label{sec:Dataset}
 The dataset \cite{dataset} comprises EEG recordings from a total of 79 adult participants, including 42 healthy controls and 37 individuals 
-diagnosed with ADHD (age range: 20-68 years; male/female ratio: 56/23). EEG signals were recorded under four different experimental conditions: 
-(1) resting state with eyes open, (2) resting state with eyes closed, (3) a cognitive challenge task, and (4) an auditory condition involving 
-listening to an ``omni harmonic'' sound stimulus. 
-
-Recordings were obtained from five scalp locations—O1, F3, F4, Cz, and Fz—using a sampling rate of 256 Hz. These regions encompass occipital 
-and frontal areas known to play critical roles in attentional control and cognitive processing. The dataset is organized by participant group 
-and gender, with each subject's data stored as MATLAB \texttt{.mat} files. One recording (from the ADHD female group) was reported to be 
-corrupted and is therefore excluded from analysis. 
-
-The diversity of conditions and electrode sites allows for a comprehensive comparison of neural dynamics across both spatial (channel-based) 
-and functional (task-based) dimensions. This structure also facilitates the extraction of time-domain, frequency-domain, and information-theoretic 
-features for subsequent modeling and classification.
-
-\section{Data Description}\label{sec:Dataset}
-
-The dataset \cite{dataset} comprises EEG recordings from a total of 79 adult participants, including 42 healthy controls and 37 individuals 
-diagnosed with ADHD (age range: 20–68 years; male/female ratio: 56/23). EEG signals were recorded under four experimental conditions: 
+diagnosed with ADHD (age range: 20-68 years; male/female ratio: 56/23). EEG signals were recorded under four experimental conditions: 
 (1) resting state with eyes open, (2) resting state with eyes closed, (3) a cognitive challenge task, and (4) an auditory task involving 
 listening to an ``omni harmonic'' sound stimulus. Recordings were obtained from five scalp locations—O1, F3, F4, Cz, and Fz—at a sampling rate 
 of 256 Hz. These regions encompass occipital and frontal areas known to play key roles in attentional control and executive function.
@@ -147,15 +131,15 @@ of 256 Hz. These regions encompass occipital and frontal areas known to play key
 \noindent\textbf{File organization and structure.}  
 The data are provided as four MATLAB \texttt{.mat} files, corresponding to the experimental groups:
 \begin{itemize}
-    \item \texttt{FC.mat} – female control group  
-    \item \texttt{MC.mat} – male control group  
-    \item \texttt{FADHD.mat} – female ADHD group  
-    \item \texttt{MADHD.mat} – male ADHD group
+    \item \texttt{FC.mat} - female control group  
+    \item \texttt{MC.mat} - male control group  
+    \item \texttt{FADHD.mat} - female ADHD group  
+    \item \texttt{MADHD.mat} - male ADHD group
 \end{itemize}
 
 Each file contains a $1\times11$ cell array, where each cell represents one experimental task or condition. Within each cell, the data are 
-stored as a three-dimensional matrix with dimensions \texttt{[subjects × samples × channels]}. For instance, a typical entry of size 
-\texttt{13×7680×2} indicates 13 participants, 7680 time samples (corresponding to 30 seconds of EEG data at 256 Hz), and two recorded channels.
+stored as a three-dimensional matrix with dimensions \texttt{[subjects x samples x channels]}. For instance, a typical entry of size 
+\texttt{13x7680x2} indicates 13 participants, 7680 time samples (corresponding to 30 seconds of EEG data at 256 Hz), and two recorded channels.
 
 The specific configuration of each cell (i.e., channel pair and duration) is summarized as follows:
 
@@ -186,7 +170,7 @@ One corrupted signal (subject 7 of the female ADHD group) was identified and exc
 
 \vspace{0.3cm}
 \noindent This hierarchical data organization allows for flexible analysis across multiple dimensions: by gender, diagnosis, condition, and 
-channel pair. For subsequent preprocessing, each task will be reshaped into individual subject–channel recordings, ensuring consistent 
+channel pair. For subsequent preprocessing, each task will be reshaped into individual subject-channel recordings, ensuring consistent 
 sampling durations across conditions.
 
 \section{Preprocessing}
