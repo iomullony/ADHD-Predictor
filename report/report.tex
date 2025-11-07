@@ -1,0 +1,223 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage[colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{amsmath, amssymb, booktabs}
+\usepackage{siunitx}
+\usepackage{multicol}
+\usepackage{rotating}
+\usepackage{tikz}
+\usepackage{float}
+
+
+% Arial-like font
+\renewcommand{\familydefault}{\sfdefault}
+
+% Page geometry
+\geometry{
+  a4paper,
+  left=2.5cm,
+  right=3.0cm,
+  top=2.5cm,
+  bottom=2.0cm
+}
+
+% Font and spacing
+\onehalfspacing
+\renewcommand{\familydefault}{\sfdefault}
+
+% Title page
+\begin{document}
+
+\begin{titlepage}
+\centering
+% \vspace*{2cm}
+  
+\includegraphics[width=0.7\textwidth]{imgs/USB.png}\\[1cm]
+
+\vspace{1.5cm}
+
+\textbf{\Large University of South Bohemia} \\
+\textbf{\large Faculty of Science} \\
+\large Artificial Intelligence and Data Science, M.Sc. \\[2.5cm]
+
+{\Large \textsc{ADHD Detection with EEG Signals}}\\[0.5cm]
+
+Submitted for the course \textbf{Information Theory and Feature Engineering} \\
+\textbf{Professor:} Doc. Ing. Ivo Bukovský, Ph.D. \\[3cm]
+
+\begin{flushleft}
+\begin{tabular}{ll}
+Submitted by: & María Isabel Sánchez-O'Mullony Martínez \\
+Student ID: & B24763 \\
+Date: & \today \\
+\end{tabular}
+\end{flushleft}
+
+\vspace{3cm}
+
+\begin{flushright}
+\begin{tabular}{ll}
+Supervisor: & Doc. Ing. Ivo Bukovský, Ph.D. \\
+\end{tabular}
+\end{flushright}
+
+\end{titlepage}
+
+
+% Declaration
+\section*{Declaration}
+I declare that I have written this report by myself and have only used the sources and aids mentioned, and that I have 
+marked direct and indirect citations as such. This report has not been submitted prior for any other examination.
+
+I agree that the results of this study work / report may be used free of charge for research and lecturing purposes.
+
+\newpage
+
+% Table of Contents
+\tableofcontents
+\newpage
+
+% List of Abbreviations
+\section*{List of Abbreviations}
+\begin{tabular}{ll}
+    ADAS & Advanced Driver Assistance Systems \\
+    ADC & Analog-to-Digital Converter \\
+    AMCW & Amplitude Modulated Continuous Wave \\
+    CAN & Controller Area Network \\
+\end{tabular}
+
+\newpage
+
+% Main Report Sections
+\section{Introduction}\label{sec:Introduction}
+Attention-Deficit/Hyperactivity Disorder (ADHD) is a prevalent neurodevelopmental condition that affects individuals across the lifespan. 
+According to Furman \cite{furman2005attention}, ADHD is not a single disease entity but rather a constellation of symptoms representing a 
+final common behavioral pathway for a range of emotional, psychological, and learning difficulties. 
+
+Although the behavioral manifestations of ADHD are well-documented, its neurophysiological underpinnings remain an active area of research. 
+Electroencephalography (EEG) has been widely used to study ADHD, as it provides a non-invasive measure of brain electrical activity. 
+Previous studies have identified characteristic EEG patterns in individuals with ADHD, particularly abnormalities in the frontal and central 
+regions, often reflected as altered spectral power or atypical signal complexity. 
+
+This study aims to investigate differences in EEG activity between healthy individuals and those diagnosed with ADHD, using the dataset 
+provided by Sadeghi Bajestani *et al.* \cite{dataset}. Specifically, the project focuses on (1) comparing the statistical and informational 
+properties of EEG signals across both groups, (2) engineering features inspired by information theory—such as entropy and mutual information—to 
+quantify signal complexity and connectivity, and (3) building a predictive model capable of distinguishing ADHD from healthy controls based on 
+these features. This work bridges the domains of signal processing, feature engineering, and information theory to improve understanding and 
+potential classification of ADHD-related brain activity.
+
+\section{Data Description}\label{sec:Dataset}
+The dataset \cite{dataset} comprises EEG recordings from a total of 79 adult participants, including 42 healthy controls and 37 individuals 
+diagnosed with ADHD (age range: 20-68 years; male/female ratio: 56/23). EEG signals were recorded under four different experimental conditions: 
+(1) resting state with eyes open, (2) resting state with eyes closed, (3) a cognitive challenge task, and (4) an auditory condition involving 
+listening to an ``omni harmonic'' sound stimulus. 
+
+Recordings were obtained from five scalp locations—O1, F3, F4, Cz, and Fz—using a sampling rate of 256 Hz. These regions encompass occipital 
+and frontal areas known to play critical roles in attentional control and cognitive processing. The dataset is organized by participant group 
+and gender, with each subject's data stored as MATLAB \texttt{.mat} files. One recording (from the ADHD female group) was reported to be 
+corrupted and is therefore excluded from analysis. 
+
+The diversity of conditions and electrode sites allows for a comprehensive comparison of neural dynamics across both spatial (channel-based) 
+and functional (task-based) dimensions. This structure also facilitates the extraction of time-domain, frequency-domain, and information-theoretic 
+features for subsequent modeling and classification.
+
+\section{Data Description}\label{sec:Dataset}
+
+The dataset \cite{dataset} comprises EEG recordings from a total of 79 adult participants, including 42 healthy controls and 37 individuals 
+diagnosed with ADHD (age range: 20–68 years; male/female ratio: 56/23). EEG signals were recorded under four experimental conditions: 
+(1) resting state with eyes open, (2) resting state with eyes closed, (3) a cognitive challenge task, and (4) an auditory task involving 
+listening to an ``omni harmonic'' sound stimulus. Recordings were obtained from five scalp locations—O1, F3, F4, Cz, and Fz—at a sampling rate 
+of 256 Hz. These regions encompass occipital and frontal areas known to play key roles in attentional control and executive function.
+
+\vspace{0.3cm}
+\noindent\textbf{File organization and structure.}  
+The data are provided as four MATLAB \texttt{.mat} files, corresponding to the experimental groups:
+\begin{itemize}
+    \item \texttt{FC.mat} – female control group  
+    \item \texttt{MC.mat} – male control group  
+    \item \texttt{FADHD.mat} – female ADHD group  
+    \item \texttt{MADHD.mat} – male ADHD group
+\end{itemize}
+
+Each file contains a $1\times11$ cell array, where each cell represents one experimental task or condition. Within each cell, the data are 
+stored as a three-dimensional matrix with dimensions \texttt{[subjects × samples × channels]}. For instance, a typical entry of size 
+\texttt{13×7680×2} indicates 13 participants, 7680 time samples (corresponding to 30 seconds of EEG data at 256 Hz), and two recorded channels.
+
+The specific configuration of each cell (i.e., channel pair and duration) is summarized as follows:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lllc}
+\toprule
+\textbf{Cell} & \textbf{Condition} & \textbf{Channels} & \textbf{Duration (s)} \\
+\midrule
+1 & Eyes open baseline & Cz, F4 & 30 \\
+2 & Eyes closed & Cz, F4 & 20 \\
+3 & Eyes open & Cz, F4 & 20 \\
+4 & Cognitive challenge & Cz, F4 & 45 \\
+5 & Pre-Omni harmonic baseline & Cz, F4 & 15 \\
+6 & Omni harmonic assessment & Cz, F4 & 30 \\
+7 & Eyes open baseline & O1, F4 & 30 \\
+8 & Eyes closed & O1, F4 & 30 \\
+9 & Eyes open & O1, F4 & 30 \\
+10 & Eyes closed & F3, F4 & 45 \\
+11 & Eyes closed & Fz, F4 & 45 \\
+\bottomrule
+\end{tabular}
+\caption{Summary of EEG tasks, channel pairs, and recording durations.}
+\label{tab:tasks}
+\end{table}
+
+One corrupted signal (subject 7 of the female ADHD group) was identified and excluded from further analysis. 
+
+\vspace{0.3cm}
+\noindent This hierarchical data organization allows for flexible analysis across multiple dimensions: by gender, diagnosis, condition, and 
+channel pair. For subsequent preprocessing, each task will be reshaped into individual subject–channel recordings, ensuring consistent 
+sampling durations across conditions.
+
+\section{Preprocessing}
+
+
+
+% \subsection{An image}
+% \label{sec:ToF}
+% \textbf{A subsection}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=1\textwidth]{imgs/USB.png}
+%     \caption{USB logo~\cite{johansson2005vehicle}}\label{fig:measurementsprinciples}
+% \end{figure}
+
+
+\newpage
+
+\cleardoublepage
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\newpage
+
+% AI Prompt Used
+\section*{AI Prompt Used}
+\begin{quote}
+1. What should I do
+
+\end{quote}
+
+\end{document}
