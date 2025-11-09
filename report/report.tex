@@ -78,7 +78,9 @@ Supervisor: & Doc. Ing. Ivo Bukovský, Ph.D. \\
 \end{titlepage}
 
 
+% ===============================
 % Declaration
+% ===============================
 \section*{Declaration}
 I declare that I have written this report by myself and have only used the sources and aids mentioned, and that I have 
 marked direct and indirect citations as such. This report has not been submitted prior for any other examination.
@@ -103,9 +105,12 @@ I agree that the results of this study work / report may be used free of charge 
 \newpage
 
 % Main Report Sections
+% ===============================
+% Introduction
+% ===============================
 \section{Introduction}\label{sec:Introduction}
 Attention-Deficit/Hyperactivity Disorder (ADHD) is a prevalent neurodevelopmental condition that affects individuals across the lifespan. 
-According to Furman \cite{furman2005attention}, ADHD is not a single disease entity but rather a constellation of symptoms representing a 
+According to Furman~\cite{furman2005attention}, ADHD is not a single disease entity but rather a constellation of symptoms representing a 
 final common behavioral pathway for a range of emotional, psychological, and learning difficulties. 
 
 Although the behavioral manifestations of ADHD are well-documented, its neurophysiological underpinnings remain an active area of research. 
@@ -114,14 +119,17 @@ Previous studies have identified characteristic EEG patterns in individuals with
 regions, often reflected as altered spectral power or atypical signal complexity. 
 
 This study aims to investigate differences in EEG activity between healthy individuals and those diagnosed with ADHD, using the dataset 
-provided by Sadeghi Bajestani *et al.* \cite{dataset}. Specifically, the project focuses on (1) comparing the statistical and informational 
+provided by Sadeghi Bajestani *et al.*~\cite{dataset}. Specifically, the project focuses on (1) comparing the statistical and informational 
 properties of EEG signals across both groups, (2) engineering features inspired by information theory—such as entropy and mutual information—to 
 quantify signal complexity and connectivity, and (3) building a predictive model capable of distinguishing ADHD from healthy controls based on 
 these features. This work bridges the domains of signal processing, feature engineering, and information theory to improve understanding and 
 potential classification of ADHD-related brain activity.
 
+% ===============================
+% Data Description
+% ===============================
 \section{Data Description}\label{sec:Dataset}
-The dataset \cite{dataset} comprises EEG recordings from a total of 79 adult participants, including 42 healthy controls and 37 individuals 
+The dataset~\cite{dataset} comprises EEG recordings from a total of 79 adult participants, including 42 healthy controls and 37 individuals 
 diagnosed with ADHD (age range: 20-68 years; male/female ratio: 56/23). EEG signals were recorded under four experimental conditions: 
 (1) resting state with eyes open, (2) resting state with eyes closed, (3) a cognitive challenge task, and (4) an auditory task involving 
 listening to an ``omni harmonic'' sound stimulus. Recordings were obtained from five scalp locations—O1, F3, F4, Cz, and Fz—at a sampling rate 
@@ -173,19 +181,74 @@ One corrupted signal (subject 7 of the female ADHD group) was identified and exc
 channel pair. For subsequent preprocessing, each task will be reshaped into individual subject-channel recordings, ensuring consistent 
 sampling durations across conditions.
 
-\section{Preprocessing}
+% ===============================
+% Data Visualization
+% ===============================
+\section{Data Visualization}\label{sec:visualization}
 
+\subsection{Data Loading and Structure}
+To analyze EEG signals from the ADHD dataset~\cite{dataset}, the recordings were imported from MATLAB \texttt{.mat} files using the 
+\texttt{scipy.io.loadmat} library in Python. Four files were available, corresponding to each experimental group:
+\texttt{FC.mat} (female control), \texttt{MC.mat} (male control), \texttt{FADHD.mat} (female ADHD), and \texttt{MADHD.mat} (male ADHD). 
+Each file contained a $1\times11$ cell array, where each cell represented a specific experimental task and stored EEG data as a 
+three-dimensional matrix with dimensions \texttt{[subjects x samples x channels]}.
 
+A custom loading function (\texttt{load\_group}) was implemented to iterate through each cell, extract signal arrays, and 
+store them in a structured \texttt{pandas DataFrame}. Each row in the resulting dataset corresponds to a single subject-task pair and includes 
+the following metadata: participant group (Control/ADHD), gender, task number, subject identifier, and a two-channel EEG signal array. 
+This organization facilitates subsequent preprocessing, visualization, and feature extraction. 
+The corrupted EEG file corresponding to subject 7 of the female ADHD group was identified and excluded from analysis.
 
-% \subsection{An image}
-% \label{sec:ToF}
-% \textbf{A subsection}
+\subsection{Signal Visualization by Group and Task}
 
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=1\textwidth]{imgs/USB.png}
-%     \caption{USB logo~\cite{johansson2005vehicle}}\label{fig:measurementsprinciples}
-% \end{figure}
+To inspect data quality and explore inter-subject variability, raw EEG signals were visualized for selected participants using 
+\texttt{matplotlib}. Figure~\ref{fig:vis_task} presents the recordings from the first five female control subjects during Task~1 
+(eyes-open baseline). Each subplot represents one subject, showing the two recorded channels.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/vis_task.png}
+    \caption{EEG signals from five female control participants during Task~1 (eyes-open baseline). Each subplot represents two simultaneously 
+recorded channels.}\label{fig:vis_task}
+\end{figure}
+
+As illustrated in Figure~\ref{fig:vis_task}, the EEG traces display characteristic oscillatory patterns within an amplitude range 
+of approximately $\pm200~\mu$V. Variations across participants are evident, with some showing strong low-frequency drifts or transient 
+spikes, likely associated with ocular or muscular artifacts. Despite these variations, both channels exhibit similar temporal trends, 
+suggesting functional coupling between the recorded electrode sites. These observations emphasize the need for further preprocessing steps, 
+such as band-pass filtering (0.5-45~Hz), baseline correction, and normalization, to ensure consistent signal quality across participants.
+
+\subsection{Comparison Between ADHD and Control Groups}
+
+A complementary visualization was conducted to qualitatively compare EEG signals between ADHD and control subjects under the same task 
+conditions. Figure~\ref{fig:vis_adhd} shows five pairs of male participants (Control vs.\ ADHD) performing Task~1, for Channel~0.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/vis_adhd.png}
+    \caption{Comparison of EEG signals between control and ADHD male participants during Task~1 for Channel~0. Each subplot shows a 
+pair of subjects (Control vs.\ ADHD).}\label{fig:vis_adhd}
+\end{figure}
+
+In general, ADHD recordings exhibit greater amplitude fluctuations and reduced rhythmic stability compared to control subjects, who 
+display smoother oscillatory activity. This increased irregularity suggests higher signal entropy and reduced neural synchronization in ADHD 
+participants. Such qualitative patterns are consistent with prior research reporting atypical cortical activity and impaired oscillatory 
+regulation in ADHD populations~\cite{lenartowicz2014use}. These visual differences motivate the extraction of quantitative features—
+particularly information-theoretic measures such as entropy and mutual information—to characterize signal complexity and connectivity.
+
+\subsection{Summary of Observations}
+
+The exploratory visualization phase revealed several important insights:
+\begin{itemize}
+    \item EEG signals contain observable low-frequency drifts and high-amplitude artifacts, supporting the need for filtering and normalization.
+    \item There is substantial inter-subject variability in signal amplitude and frequency content, even within the same condition.
+    \item ADHD participants tend to exhibit higher signal variability and irregularity, indicating potential discriminative features for 
+    subsequent classification.
+\end{itemize}
+
+These findings informed the design of the preprocessing and feature extraction pipeline, where statistical, spectral, and 
+information-theoretic features were computed to enable quantitative group comparison and machine learning-based classification.
+
 
 
 \newpage
