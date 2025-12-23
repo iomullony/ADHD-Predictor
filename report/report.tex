@@ -96,9 +96,10 @@ I agree that the results of this study work / report may be used free of charge 
 % List of Abbreviations
 \section*{List of Abbreviations}
 \begin{tabular}{ll}
+    AC & Alternating Current \\
     ADHD & Attention-Deficit/Hyperactivity Disorder \\
-    EEG & Electroencephalography \\
     DC & Direct Current \\
+    EEG & Electroencephalography \\
 \end{tabular}
 
 \newpage
@@ -124,6 +125,7 @@ quantify signal complexity and connectivity, and (3) building a predictive model
 these features. This work bridges the domains of signal processing, feature engineering, and information theory to improve understanding and 
 potential classification of ADHD-related brain activity.
 
+
 % ===============================
 % Data Description
 % ===============================
@@ -138,10 +140,10 @@ of 256 Hz. These regions encompass occipital and frontal areas known to play key
 \noindent\textbf{File organization and structure.}  
 The data are provided as four MATLAB \texttt{.mat} files, corresponding to the experimental groups:
 \begin{itemize}
-    \item \texttt{FC.mat} - female control group  
-    \item \texttt{MC.mat} - male control group  
-    \item \texttt{FADHD.mat} - female ADHD group  
-    \item \texttt{MADHD.mat} - male ADHD group
+    \item \texttt{FC.mat} — female control group  
+    \item \texttt{MC.mat} — male control group  
+    \item \texttt{FADHD.mat} — female ADHD group  
+    \item \texttt{MADHD.mat} — male ADHD group
 \end{itemize}
 
 Each file contains a $1\times11$ cell array, where each cell represents one experimental task or condition. Within each cell, the data are 
@@ -181,6 +183,7 @@ One corrupted signal (subject 7 of the female ADHD group) was identified and exc
 channel pair. For subsequent preprocessing, each task will be reshaped into individual subject-channel recordings, ensuring consistent 
 sampling durations across conditions.
 
+
 % ===============================
 % Data Visualization
 % ===============================
@@ -198,8 +201,8 @@ the following metadata: participant group (Control/ADHD), gender, task number, s
 This organization facilitates subsequent preprocessing, visualization, and feature extraction. 
 The corrupted EEG file corresponding to subject 7 of the female ADHD group was identified and excluded from analysis.
 
-\subsection{Signal Visualization by Group and Task}
 
+\subsection{Signal Visualization by Group and Task}
 To inspect data quality and explore inter-subject variability, raw EEG signals were visualized for selected participants using 
 \texttt{matplotlib}. Figure~\ref{fig:vis_task} presents the recordings from the first five female control subjects during Task~1 
 (eyes-open baseline). Each subplot represents one subject, showing the two recorded channels.
@@ -215,7 +218,8 @@ As illustrated in Figure~\ref{fig:vis_task}, the EEG traces display characterist
 of approximately $\pm200~\mu$V. Variations across participants are evident, with some showing strong low-frequency drifts or transient 
 spikes, likely associated with ocular or muscular artifacts. Despite these variations, both channels exhibit similar temporal trends, 
 suggesting functional coupling between the recorded electrode sites. These observations emphasize the need for further preprocessing steps, 
-such as band-pass filtering (0.5-45~Hz), baseline correction, and normalization, to ensure consistent signal quality across participants.
+such as band-pass filtering (0.5 — 45~Hz), baseline correction, and normalization, to ensure consistent signal quality across participants.
+
 
 \subsection{Comparison Between ADHD and Control Groups}
 A complementary visualization was conducted to qualitatively compare EEG signals between ADHD and control subjects under the same task 
@@ -231,10 +235,11 @@ pair of subjects (Control vs.\ ADHD).}\label{fig:vis_adhd}
 In general, ADHD recordings exhibit greater amplitude fluctuations and reduced rhythmic stability compared to control subjects, who 
 display smoother oscillatory activity. This increased irregularity suggests higher signal entropy and reduced neural synchronization in ADHD 
 participants. Such qualitative patterns are consistent with prior research reporting atypical cortical activity and impaired oscillatory 
-regulation in ADHD populations~\cite{lenartowicz2014use}. These visual differences motivate the extraction of quantitative features—
-particularly information-theoretic measures such as entropy and mutual information—to characterize signal complexity and connectivity.
+regulation in ADHD populations~\cite{lenartowicz2014use}. These visual differences motivate the extraction of quantitative features —
+particularly information-theoretic measures such as entropy and mutual information — to characterize signal complexity and connectivity.
 
-\subsection{Summary of Observations}
+
+\subsection{Observations}
 The exploratory visualization phase revealed several important insights:
 \begin{itemize}
     \item EEG signals contain observable low-frequency drifts and high-amplitude artifacts, supporting the need for filtering and normalization.
@@ -246,33 +251,32 @@ The exploratory visualization phase revealed several important insights:
 These findings informed the design of the preprocessing and feature extraction pipeline, where statistical, spectral, and 
 information-theoretic features were computed to enable quantitative group comparison and machine learning-based classification.
 
-% \section{Preprocessing}\label{sec:preprocessing}
-% EEG signals were detrended and band-pass filtered (0.5-45 Hz; 4th-order Butterworth). Where present, line noise was attenuated with a notch 
-% filter at 50 Hz (harmonics were inspected via PSD and notched when required). Transient spikes were suppressed using a Hampel filter. Because 
-% each task includes two electrodes, a bipolar derivation (ch1-ch2) was computed and used alongside the original channels. To standardize 
-% duration across tasks, recordings were segmented into 5-s windows (50\% overlap); windows containing excessive amplitude (|x|>200 µV), 
-% flatline, or near-zero variance were excluded. All subsequent feature extraction and model fitting were performed with subject-wise 
-% cross-validation to prevent information leakage; scalers were fit on training folds and applied to test folds.
 
 % ===============================
 % Preprocessing
 % ===============================
-\section{Preprocessing}\label{sec:preprocessing2}
+\section{Preprocessing}\label{sec:preprocessing}
 EEG data are highly sensitive to non-neural artifacts arising from muscle activity, eye blinks, and small head or body movements. 
 Because the dataset used in this study was recorded non-invasively from scalp electrodes, such artifacts are inevitable and must be 
 carefully mitigated to preserve the validity of the neural information~\cite{chaddad2023electroencephalography}. The objective of the 
-preprocessing stage was therefore to reduce non-cerebral noise and standardize the signals prior to feature extraction.
+preprocessing stage was therefore to reduce non-cerebral noise to isolate the neural dynamics relevant to ADHD.
 
-\subsection{Detrending}
+Each recording was first detrended by removing its mean to eliminate slow DC components. A notch filter at 50~Hz was used to attenuate 
+power-line interference and fourth-order Butterworth band-pass filter between 0.5~Hz and 45~Hz was then applied to suppress slow drifts 
+and high-frequency muscular or environmental noise while preserving the main EEG frequency bands (delta, theta, alpha, beta, and 
+low-gamma). In addition, a notch filter at 50~Hz was used to attenuate power-line interference. 
+
+
+\subsection{Detrending}\label{sec:detrending}
 EEG recordings were detrended by subtracting the mean amplitude of each channel to remove Direct Current (DC) offsets and slow baseline 
 drifts~\cite{de2018robust}. EEG recordings often contain a small DC offset — a constant voltage bias caused by electrode-skin impedance 
-and amplifier drift. This offset shifts the entire signal above or below zero microvolts without carrying any neural information. This 
-step prevents artificial low-frequency power and ensures that subsequent analyses reflect genuine neural oscillations. Although the 
+and amplifier drift changes. This offset shifts the entire signal above or below zero microvolts without carrying any neural information. 
+This step prevents artificial low-frequency power and ensures that subsequent analyses reflect genuine neural oscillations. Although the 
 visual appearance of the waveforms remains largely unchanged, detrending is essential to prevent bias in later spectral and entropy-based 
 feature extraction.
 
 To verify the effectiveness of the detrending procedure, the mean amplitude of each EEG channel was computed before and after baseline 
-correction. As shown below in~\ref{tab:detrend_compare}, the mean values were reduced to approximately zero following detrending, 
+correction. As shown below in table~\ref{tab:detrend_compare}, the mean values were reduced to approximately zero following detrending, 
 confirming successful removal of the DC offset while preserving the oscillatory structure of the signal.
 
 \begin{table}[h!]
@@ -294,58 +298,89 @@ baseline drifts without altering the underlying temporal dynamics. This ensures 
 biased by non-neural voltage offsets.
 
 
-% \subsection{Signal Filtering and Cleaning}
-% Each recording was first detrended by removing its mean to eliminate slow DC components. A fourth-order Butterworth band-pass filter 
-% between 0.5~Hz and 45~Hz was then applied to suppress slow drifts and high-frequency muscular or environmental noise while preserving 
-% the main EEG frequency bands (delta, theta, alpha, beta, and low-gamma). In addition, a notch filter at 50~Hz was used to attenuate 
-% power-line interference. 
+\subsection{Notch Filtering}\label{sec:notch}
+During EEG acquisition, recordings are often contaminated by electrical noise originating from alternating current (AC) power lines.
 
-% Transient spikes were suppressed using a Hampel filter, and any segment exceeding an absolute amplitude of $\pm$200~\textmu V or showing 
-% near-zero variance was excluded. These steps effectively reduced the influence of eye blinks and abrupt movements while maintaining 
-% the oscillatory structure of the neural signal. Figure~\ref{fig:filtering_example} illustrates an example EEG trace before and after 
-% filtering, demonstrating the removal of low-frequency drifts and high-frequency noise.
+Through capacitive coupling, this strong electrical signal ``leaks'' into the EEG recording. Since brain waves are measured in microvolts 
+($\mu V$) and power lines carry huge voltage, this ``hum'' can completely drown out brain signals, especially in the Gamma band (30-50 Hz).
 
-% % \begin{figure}[h!]
-% % \centering
-% % \includegraphics[width=0.8\textwidth]{example_filtering.png}
-% % \caption{Example EEG trace before (top) and after (bottom) preprocessing. Band-pass and notch filtering remove slow drifts and 
-% % high-frequency noise while preserving neural oscillatory content.}
-% % \label{fig:filtering_example}
-% % \end{figure}
+To eliminate main electricity noise, an IIR Notch Filter was applied at 50 Hz. The quality factor was set to $Q = 30$ to minimize the 
+distortion of surrounding frequencies while effectively suppressing the power line hum.
 
-% \subsection{Segmentation and Standardization}
-% Recordings varied in duration from 15~s to 45~s depending on the task. To ensure temporal consistency, each signal was divided into 
-% fixed 5~s windows (1280~samples at 256~Hz) with 50\% overlap. Windows containing artifacts according to the amplitude or variance 
-% criteria were automatically rejected. Each remaining segment was standardized using z-score normalization to ensure comparability 
-% across participants and tasks. 
 
-% A derived bipolar channel (difference between the two electrodes) was also computed and included alongside the original channels to 
-% enhance sensitivity to local cortical activity while suppressing common reference noise.
+\subsection{Band-Pass Filtering}\label{sec:bandpass}
+A crucial step in EEG preprocessing is the removal of frequency components that do not reflect neural activity. Raw EEG recordings are highly 
+susceptible to slow drifts caused by skin potentials and electrode impedance fluctuations, as well as high-frequency contamination originating 
+from muscle activity (EMG), electrical noise, and environmental interference. If not addressed, these artifacts can dominate the signal and 
+bias subsequent feature extraction, particularly when computing spectral or information-theoretic measures.
 
-% \subsection{Rationale and Validity Considerations}
-% Although advanced artifact removal techniques such as independent component analysis (ICA) are commonly used in high-density EEG, 
-% the present dataset provides only two channels per task, which limits the use of such methods. The adopted preprocessing strategy 
-% therefore focused on robust signal cleaning using filtering, threshold-based rejection, and normalization. These measures substantially 
-% improve signal quality while minimizing the risk of removing genuine neural features potentially related to ADHD.
+To mitigate these issues, each EEG segment was band-pass filtered between 1 Hz and 50 Hz using a 2nd order Butterworth filter. Frequencies 
+below 1 Hz primarily capture non-neural low-frequency drift, while components above 50 Hz are largely associated with muscular activity and 
+electrical noise. 
 
-% The cleaned and standardized signals resulting from this pipeline form the basis for subsequent feature extraction, where both 
-% statistical and information-theoretic descriptors are computed to characterize EEG dynamics across groups.
 
-% \section{Discussion and Limitations}\label{sec:discussion}
+\subsection{Preprocessing Comparison}\label{sec:comparison}
+Figure~\ref{fig:preprocessing} illustrates a representative example comparing the data before and after the preprocessing, in this example 
+is the female group control.
 
-% One of the major challenges in EEG-based analysis lies in distinguishing true neural activity from non-neural artifacts. 
-% Because EEG is recorded from scalp electrodes rather than intracranial sources, the signals are inherently vulnerable to contamination 
-% by muscular, ocular, and movement-related activity. While the preprocessing pipeline used in this study—comprising band-pass and notch 
-% filtering, spike suppression, and amplitude-based rejection—successfully mitigated much of this interference, complete artifact removal 
-% is not possible with only two recording channels. Consequently, some residual artifacts may persist and potentially influence the extracted 
-% features.
+The left panel displays the raw EEG signal, exhibiting baseline drift and high-frequency noise. 
+The right panel shows the signal after Detrending, Notch Filtering (50Hz), and Bandpass Filtering (1-40Hz). 
+After preprocessing, the signal is centered around zero, and high-frequency fluctuations associated with power-line noise are visibly 
+attenuated. Importantly, the dominant oscillatory patterns remain intact, indicating that preprocessing reduced noise without distorting 
+meaningful neural activity.
 
-% This limitation affects the validity of any EEG-based classification, as a portion of the observed differences between ADHD and control 
-% participants could reflect artifact-related variability rather than genuine neurophysiological differences. Nevertheless, the consistency 
-% of the cleaned signals across subjects and the preservation of characteristic oscillatory patterns (particularly within alpha and beta bands) 
-% support the interpretation that the derived features primarily capture neural dynamics. Future work using high-density EEG, simultaneous 
-% eye-tracking or EMG recordings, and advanced source-separation methods (e.g., ICA or wavelet-based artifact correction) would allow for a 
-% more precise dissociation between artifacts and ADHD-related brain activity.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/preprocessing_comparison.png}
+    \caption{Preprocessing Comparisson}
+    \label{fig:preprocessing}
+\end{figure}
+
+
+\subsection{Quantitative Comparison}\label{sec:quantitative}
+To quantitatively evaluate the impact of preprocessing, several signal quality metrics were computed before and after filtering. These included 
+signal variance, 50 Hz line noise power, signal-to-noise ratio (SNR), and Shannon entropy:
+
+\begin{enumerate}
+    \item \textbf{Total Variance Reduction:} 
+    Since ocular and muscle artifacts typically manifest as high-amplitude transients significantly larger than neural potentials, a reduction in signal variance serves as a global proxy for artifact suppression.
+    
+    \item \textbf{50 Hz Line Noise Power:} 
+    We computed the integrated power in the 49--51 Hz band to specifically validate the efficacy of the IIR Notch filter in eliminating mains interference.
+    
+    \item \textbf{Signal-to-Noise Ratio (SNR):} 
+    SNR was calculated as the ratio of power in the physiological EEG band (1--45 Hz) to the power in artifactual bands (0.1--1 Hz drift and $>55$ Hz muscle noise). An increase in SNR indicates that the filtering preserved neural information while selectively attenuating noise.
+    
+    \item \textbf{Shannon Entropy:} 
+    Entropy measures the complexity or randomness of a signal. Since electromyogenic (muscle) noise often resembles random processes, a shift in entropy post-processing reflects the recovery of structured, rhythmic neural oscillations (e.g., Alpha waves).
+\end{enumerate}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Metric} & \textbf{Raw Signal (Mean)} & \textbf{Preprocessed (Mean)} & \textbf{Change / Improvement} \\
+        \midrule
+        Total Variance ($\mu V^2$) & 242.6 & 191.4 & 21.1\% Reduction \\
+        50 Hz Power (Line Noise) & 20.62 & 0.29 & \textbf{98.6\% Suppression} \\
+        High-Freq Noise ($>55$Hz) & 1.67 & 0.12 & 92.8\% Suppression \\
+        Signal-to-Noise Ratio (SNR) & 13.65 & 21.82 & \textbf{59.8\% Improvement} \\
+        Shannon Entropy & 2.75 & 2.80 & Stable (+1.8\%) \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:quantitative}
+    \caption{Quantitative Assessment of Preprocessing Efficacy (Averaged across N=13 subjects)}
+\end{table}
+
+Table~\ref{fig:quantitative} presents the quantitative impact of the preprocessing pipeline. The most significant improvement was observed in 
+the removal of power line interference, with a 98.6\% reduction in 50 Hz power. The 92.8\% reduction in high-frequency noise suggests that 
+electromyogenic (muscle) artifacts, which predominantly affect the gamma band, were effectively suppressed
+
+Notably, the total signal variance decreased by only 21.1\%, while the specific noise components were nearly eliminated. This indicates that 
+the preprocessing pipeline successfully preserved the majority of the low-frequency physiological brain activity (Delta, Theta, Alpha) while 
+surgically removing environmental artifacts. Consequently, the Signal-to-Noise Ratio (SNR) improved from 13.65 to 21.82, providing a cleaner 
+input for the subsequent feature extraction stages."
+
 
 \newpage
 
@@ -357,10 +392,14 @@ biased by non-neural voltage offsets.
 \newpage
 
 % AI Prompt Used
-% \section*{AI Prompt Used}
-% \begin{quote}
-% 1. What should I do
+\section*{AI Prompt Used}
+\begin{quote}
+1. Give me a good structure for the a report in this.
 
-% \end{quote}
+2. What are the best preprocessing methods I can use for this dataset?
+
+3. Are PCA, WT or EMD good methods for preprocessing my data?
+
+\end{quote}
 
 \end{document}

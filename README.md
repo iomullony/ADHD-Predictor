@@ -1,2 +1,4 @@
 # ADHD-Predictor
 Detection of ADHD using EEG signals
+
+This study aims to investigate differences in EEG activity between healthy individuals and those diagnosed with ADHD, using the dataset provided by Sadeghi Bajestani *et al.*. Specifically, the project focuses on (1) comparing the statistical and informational properties of EEG signals across both groups, (2) engineering features inspired by information theory—such as entropy and mutual information—to quantify signal complexity and connectivity, and (3) building a predictive model capable of distinguishing ADHD from healthy controls based on these features. This work bridges the domains of signal processing, feature engineering, and information theory to improve understanding and potential classification of ADHD-related brain activity.
