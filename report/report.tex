@@ -46,18 +46,18 @@
 \centering
 % \vspace*{2cm}
   
-\includegraphics[width=0.7\textwidth]{imgs/USB.png}\\[1cm]
+\includegraphics[width=0.7\textwidth]{imgs/USB.png}\\[2cm]
 
 \vspace{1.5cm}
 
 \textbf{\Large University of South Bohemia} \\
 \textbf{\large Faculty of Science} \\
-\large Artificial Intelligence and Data Science, M.Sc. \\[2.5cm]
+\large Artificial Intelligence and Data Science, M.Sc. \\[3cm]
 
 {\Large \textsc{ADHD Detection with EEG Signals}}\\[0.5cm]
 
 Submitted for the course \textbf{Information Theory and Feature Engineering} \\
-\textbf{Professor:} Doc. Ing. Ivo Bukovský, Ph.D. \\[3cm]
+\textbf{Professor:} Doc. Ing. Ivo Bukovský, Ph.D. \\[4cm]
 
 \begin{flushleft}
 \begin{tabular}{ll}
@@ -67,7 +67,7 @@ Date: & \today \\
 \end{tabular}
 \end{flushleft}
 
-\vspace{3cm}
+\vspace{4cm}
 
 \begin{flushright}
 \begin{tabular}{ll}
@@ -100,6 +100,8 @@ I agree that the results of this study work / report may be used free of charge 
     ADHD & Attention-Deficit/Hyperactivity Disorder \\
     DC & Direct Current \\
     EEG & Electroencephalography \\
+    PSD & Power Spectral Density \\
+    SNR & Signal-to-Noise Ratio \\
 \end{tabular}
 
 \newpage
@@ -262,9 +264,8 @@ carefully mitigated to preserve the validity of the neural information~\cite{cha
 preprocessing stage was therefore to reduce non-cerebral noise to isolate the neural dynamics relevant to ADHD.
 
 Each recording was first detrended by removing its mean to eliminate slow DC components. A notch filter at 50~Hz was used to attenuate 
-power-line interference and fourth-order Butterworth band-pass filter between 0.5~Hz and 45~Hz was then applied to suppress slow drifts 
-and high-frequency muscular or environmental noise while preserving the main EEG frequency bands (delta, theta, alpha, beta, and 
-low-gamma). In addition, a notch filter at 50~Hz was used to attenuate power-line interference. 
+power-line interference, and a fourth-order Butterworth band-pass filter between 1Hz and 50~Hz was then applied to suppress slow drifts 
+and high-frequency muscular or environmental noise while preserving the main EEG frequency bands.
 
 
 \subsection{Detrending}\label{sec:detrending}
@@ -275,32 +276,9 @@ This step prevents artificial low-frequency power and ensures that subsequent an
 visual appearance of the waveforms remains largely unchanged, detrending is essential to prevent bias in later spectral and entropy-based 
 feature extraction.
 
-To verify the effectiveness of the detrending procedure, the mean amplitude of each EEG channel was computed before and after baseline 
-correction. As shown below in table~\ref{tab:detrend_compare}, the mean values were reduced to approximately zero following detrending, 
-confirming successful removal of the DC offset while preserving the oscillatory structure of the signal.
-
-\begin{table}[h!]
-\centering
-\begin{tabular}{lcc}
-\toprule
- & \textbf{Channel 1} & \textbf{Channel 2} \\
-\midrule
-Mean before detrending (\textmu V) & 1.5269 & 0.0936 \\
-Mean after detrending (\textmu V) & -1.74$\times$10$^{-15}$ & 1.18$\times$10$^{-16}$ \\
-\bottomrule
-\end{tabular}
-\caption{Verification of mean amplitude before and after detrending.}
-\label{tab:detrend_compare}
-\end{table}
-
-The results confirm that the detrending operation correctly centered the EEG signals around zero microvolts, thereby eliminating slow 
-baseline drifts without altering the underlying temporal dynamics. This ensures that subsequent frequency and entropy analyses are not 
-biased by non-neural voltage offsets.
-
 
 \subsection{Notch Filtering}\label{sec:notch}
 During EEG acquisition, recordings are often contaminated by electrical noise originating from alternating current (AC) power lines.
-
 Through capacitive coupling, this strong electrical signal ``leaks'' into the EEG recording. Since brain waves are measured in microvolts 
 ($\mu V$) and power lines carry huge voltage, this ``hum'' can completely drown out brain signals, especially in the Gamma band (30-50 Hz).
 
@@ -314,9 +292,10 @@ susceptible to slow drifts caused by skin potentials and electrode impedance flu
 from muscle activity (EMG), electrical noise, and environmental interference. If not addressed, these artifacts can dominate the signal and 
 bias subsequent feature extraction, particularly when computing spectral or information-theoretic measures.
 
-To mitigate these issues, each EEG segment was band-pass filtered between 1 Hz and 50 Hz using a 2nd order Butterworth filter. Frequencies 
-below 1 Hz primarily capture non-neural low-frequency drift, while components above 50 Hz are largely associated with muscular activity and 
-electrical noise. 
+To mitigate these issues, each EEG segment was band-pass filtered between 1 Hz and 50 Hz using a 2nd order Butterworth filter, 
+adhering to recommended practices for digital filter design in electrophysiological data~\cite{widmann2015digital}. 
+Frequencies below 1 Hz primarily capture non-neural low-frequency drift, while components above 50 Hz are largely associated with muscular 
+activity and electrical noise.
 
 
 \subsection{Preprocessing Comparison}\label{sec:comparison}
@@ -343,20 +322,25 @@ signal variance, 50 Hz line noise power, signal-to-noise ratio (SNR), and Shanno
 
 \begin{enumerate}
     \item \textbf{Total Variance Reduction:} 
-    Since ocular and muscle artifacts typically manifest as high-amplitude transients significantly larger than neural potentials, a reduction in signal variance serves as a global proxy for artifact suppression.
+    Since ocular and muscle artifacts typically manifest as high-amplitude transients significantly larger than neural potentials, a reduction 
+    in signal variance serves as a global proxy for artifact suppression.
     
     \item \textbf{50 Hz Line Noise Power:} 
-    We computed the integrated power in the 49--51 Hz band to specifically validate the efficacy of the IIR Notch filter in eliminating mains interference.
+    We computed the integrated power in the 49--51 Hz band to specifically validate the efficacy of the IIR Notch filter in eliminating mains 
+    interference.
     
     \item \textbf{Signal-to-Noise Ratio (SNR):} 
-    SNR was calculated as the ratio of power in the physiological EEG band (1--45 Hz) to the power in artifactual bands (0.1--1 Hz drift and $>55$ Hz muscle noise). An increase in SNR indicates that the filtering preserved neural information while selectively attenuating noise.
+    SNR was calculated as the ratio of power in the physiological EEG band (1--45 Hz) to the power in artifactual bands (0.1--1 Hz drift and 
+    $>55$ Hz muscle noise). An increase in SNR indicates that the filtering preserved neural information while selectively attenuating noise.
     
     \item \textbf{Shannon Entropy:} 
-    Entropy measures the complexity or randomness of a signal. Since electromyogenic (muscle) noise often resembles random processes, a shift in entropy post-processing reflects the recovery of structured, rhythmic neural oscillations (e.g., Alpha waves).
+    Entropy measures the complexity or randomness of a signal. Since electromyogenic (muscle) noise often resembles random processes, a shift 
+    in entropy post-processing reflects the recovery of structured, rhythmic neural oscillations (e.g., Alpha waves).
 \end{enumerate}
 
 \begin{table}[H]
     \centering
+    \makebox[\textwidth][c]{%
     \begin{tabular}{lccc}
         \toprule
         \textbf{Metric} & \textbf{Raw Signal (Mean)} & \textbf{Preprocessed (Mean)} & \textbf{Change / Improvement} \\
@@ -367,19 +351,85 @@ signal variance, 50 Hz line noise power, signal-to-noise ratio (SNR), and Shanno
         Signal-to-Noise Ratio (SNR) & 13.65 & 21.82 & \textbf{59.8\% Improvement} \\
         Shannon Entropy & 2.75 & 2.80 & Stable (+1.8\%) \\
         \bottomrule
-    \end{tabular}
+    \end{tabular}}
+    \caption{Quantitative Assessment of Preprocessing Efficacy}
     \label{tab:quantitative}
-    \caption{Quantitative Assessment of Preprocessing Efficacy (Averaged across N=13 subjects)}
 \end{table}
 
-Table~\ref{fig:quantitative} presents the quantitative impact of the preprocessing pipeline. The most significant improvement was observed in 
+Table~\ref{tab:quantitative} presents the quantitative impact of the preprocessing pipeline. The most significant improvement was observed in 
 the removal of power line interference, with a 98.6\% reduction in 50 Hz power. The 92.8\% reduction in high-frequency noise suggests that 
 electromyogenic (muscle) artifacts, which predominantly affect the gamma band, were effectively suppressed
 
 Notably, the total signal variance decreased by only 21.1\%, while the specific noise components were nearly eliminated. This indicates that 
 the preprocessing pipeline successfully preserved the majority of the low-frequency physiological brain activity (Delta, Theta, Alpha) while 
 surgically removing environmental artifacts. Consequently, the Signal-to-Noise Ratio (SNR) improved from 13.65 to 21.82, providing a cleaner 
-input for the subsequent feature extraction stages."
+input for the subsequent feature extraction stages.
+
+
+% ===============================
+% Feature Extraction
+% ===============================
+\section{Feature Extraction}\label{sec:features}
+Following the preprocessing stage, the EEG data consisted of clean, filtered time-series signals. However, raw time-series data is 
+high-dimensional and non-stationary, making it challenging for standard machine learning classifiers to process directly.
+
+To address this, the data was transformed from the Time Domain to the Frequency Domain to extract quantitative features representative of the 
+subject's cognitive state. According to a recent systematic review of EEG-based ADHD diagnostics~\cite{arpaia2022systematic}, spectral band 
+power and the Theta/Beta ratio are among the most robust and widely utilized features for distinguishing ADHD subjects from controls.
+
+Therefore, feature extraction focused on three primary metrics:
+
+\begin{itemize}
+    \item \textbf{Power Spectral Density (PSD):} Measures how much power or strength the brain waves have at different frequencies.
+    \item \textbf{Band Power:} The integral of power within standard frequency bands (Delta, Theta, Alpha, Beta, Gamma).
+    \item \textbf{Theta/Beta Ratio (TBR):}  validated electrophysiological biomarker for ADHD, representing the ratio of slow-wave (Theta) to 
+        fast-wave (Beta) activity.
+\end{itemize}
+
+
+\subsection{Power Spectral Density}
+We utilized Welch's Method to estimate the PSD of the EEG signals. Unlike a standard Fast Fourier Transform (FFT), Welch's method splits the 
+signal into overlapping segments and averages their periodograms~\cite{welch2003use}. This approach significantly reduces the variance of the 
+power estimate, resulting in a smoother spectrum that is more suitable for analyzing biological signals with inherent noise.
+
+
+\subsection{Band Power}
+Once the PSD was generated, the absolute power for standard EEG frequency bands was extracted. The power for each band was calculated using 
+Simpson's Rule to numerically integrate the area under the PSD curve within specific frequency limits defined as follows:
+
+\begin{table}[H]
+    \centering
+    \makebox[\textwidth][c]{%
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Band} & \textbf{Range (Hz)} & \textbf{Physiological Association} \\
+        \midrule
+        Delta ($\delta$) & 0.5 -- 4 Hz & Deep sleep, unconsciousness \\ 
+        Theta ($\theta$) & 4 -- 8 Hz & Drowsiness or daydreaming (High in ADHD) \\
+        Alpha ($\alpha$) & 8 -- 13 Hz & Relaxed but awake \\ 
+        Beta ($\beta$) & 13 -- 30 Hz & Active thinking, focus, alertness (Low in ADHD) \\ 
+        Gamma ($\gamma$) & 30 -- 50 Hz & High-level cognitive processing \\
+        \bottomrule
+    \end{tabular}}
+    \caption{EEG Frequency Bands and associated cognitive states}
+    \label{tab:bands}
+\end{table}
+
+
+\subsection{The Theta/Beta Ratio}
+In addition to absolute band powers, we calculated the Theta/Beta Ratio (TBR) for each channel. The TBR is a widely recognized 
+electrophysiological marker for ADHD.
+
+Physiologically, ADHD is often characterized by an excess of slow-wave activity (Theta) and a deficit of fast-wave activity (Beta) during 
+cognitive tasks~\cite{clarke2002eeg}. By computing the ratio $\frac{\text{Theta}}{\text{Beta}}$, we generate a feature that maximizes the 
+separability between the ADHD and Control groups.
+
+
+\subsection{Feature Matrix Construction}
+This extraction process was repeated for every channel for each subject. The final dataset was organized into a feature matrix where each row 
+represents a distinct subject and columns correspond to the extracted spectral features (Band Powers and TBR) for each channel. 
+
+This resulted in a structured dataset suitable for input into the machine learning classifiers described in the following section.
 
 
 \newpage
@@ -393,13 +443,13 @@ input for the subsequent feature extraction stages."
 
 % AI Prompt Used
 \section*{AI Prompt Used}
-\begin{quote}
-1. Give me a good structure for the a report in this.
-
-2. What are the best preprocessing methods I can use for this dataset?
-
-3. Are PCA, WT or EMD good methods for preprocessing my data?
-
-\end{quote}
+\begin{enumerate}
+    \item Give me a good structure for a report.
+    \item What are the best preprocessing methods I can use for EEG signals?
+    \item Are PCA, WT or EMD good methods for EEG signals with limited information?
+    \item What are Butterworth filters and how do they work?
+    \item What are the best ways to show a more quantitative comparison after preprocessing?
+    \item How does Feature Extraction work and for what is it used?
+\end{enumerate}
 
 \end{document}
