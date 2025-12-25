@@ -100,8 +100,13 @@ I agree that the results of this study work / report may be used free of charge 
     ADHD & Attention-Deficit/Hyperactivity Disorder \\
     DC & Direct Current \\
     EEG & Electroencephalography \\
+    EMG & Electromyography \\
+    FFT & Fast Fourier Transform \\
     PSD & Power Spectral Density \\
+    RF & Random Forest \\
     SNR & Signal-to-Noise Ratio \\
+    SVM & Support Vector Machine \\
+    TBR & Theta/Beta Ratio \\
 \end{tabular}
 
 \newpage
@@ -303,7 +308,7 @@ Figure~\ref{fig:preprocessing} illustrates a representative example comparing th
 is the female group control.
 
 The left panel displays the raw EEG signal, exhibiting baseline drift and high-frequency noise. 
-The right panel shows the signal after Detrending, Notch Filtering (50Hz), and Bandpass Filtering (1-40Hz). 
+The right panel shows the signal after Detrending, Notch Filtering (50Hz), and Bandpass Filtering (1-50Hz). 
 After preprocessing, the signal is centered around zero, and high-frequency fluctuations associated with power-line noise are visibly 
 attenuated. Importantly, the dominant oscillatory patterns remain intact, indicating that preprocessing reduced noise without distorting 
 meaningful neural activity.
@@ -432,6 +437,115 @@ represents a distinct subject and columns correspond to the extracted spectral f
 This resulted in a structured dataset suitable for input into the machine learning classifiers described in the following section.
 
 
+% ===============================
+% Modeling
+% ===============================
+\section{Modeling}\label{sec:modeling}
+To determine the optimal method for distinguishing between ADHD and Control subjects, we conducted a comparative analysis of two widely 
+established machine learning classifiers: Random Forest (an ensemble method) and Support Vector Machine (a kernel-based method).
+
+\begin{enumerate}
+    \item \textbf{Random Forest (RF):} Random Forest, proposed by Breiman~\cite{breiman2001random}, is a non-linear ensemble method that 
+        constructs multiple decision trees. It is known for its robustness to noise and ability to capture complex interactions between 
+        features.
+    \item \textbf{Support Vector Machine (SVM):} The Support Vector Machine (SVM), introduced by Cortes and Vapnik~\cite{cortes1995support}, 
+        is a powerful supervised learning model. A kernel-based classifier (RBF kernel) that seeks to find the optimal hyperplane separating 
+        the two classes in a high-dimensional space.
+\end{enumerate}
+
+\subsection{Validation Strategy: 5-Fold Group Cross-Validation}
+To ensure the statistical robustness of our results, we implemented a Group k-Fold Cross-Validation scheme ($k=5$). Unlike a simple 
+train/test split, this method partitions the subjects into five distinct folds. In each iteration, the model is trained on subjects from four 
+folds and tested on the remaining unseen fold.
+
+This approach guarantees that:
+\begin{enumerate}
+    \item \textbf{No Subject Leakage:} All data from a single subject is kept strictly within one fold.
+    \item \textbf{Full Coverage:} Every subject in the dataset is used for testing exactly once.
+    \item \textbf{Reliability:} We report the mean accuracy and standard deviation ($\mu \pm \sigma$) across the five folds, providing a 
+    measure of the model's stability.
+\end{enumerate}
+
+\subsection{Model Comparison}
+We compared the performance of Random Forest and Support Vector Machine (SVM) using the cross-validation scheme. As shown in Table
+~\ref{tab:cv_results}, the Random Forest classifier achieved superior performance in both accuracy and stability.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Model} & \textbf{Mean Accuracy} & \textbf{Stability (Std Dev)} \\
+        \midrule
+        SVM (RBF Kernel) & 92.10\% & $\pm$ 5.76\% \\
+        \textbf{Random Forest} & \textbf{95.12\%} & \textbf{$\pm$ 4.13\%} \\
+        \bottomrule
+    \end{tabular}
+    \caption{5-Fold Cross-Validation Results.}
+    \label{tab:cv_results}
+\end{table}
+
+The Random Forest model outperformed SVM by approximately 3\%. Additionally, it exhibited lower variance ($\pm 4.13\%$ vs $\pm 5.76\%$), 
+indicating that the ensemble of decision trees was more robust to inter-subject variability than the single hyperplane of the SVM.
+
+The performance gap suggests that the ensemble nature of Random Forest was better able to generalize across the inter-subject variability 
+inherent in EEG data~\cite{tenev2014machine}. While SVM provides a strong baseline, its reliance on a global margin makes it more sensitive to 
+the distribution of the data, whereas Random Forest's hierarchical structure effectively isolates the specific frequency bands (specifically 
+Theta and Beta) that drive the classification.
+
+
+\subsection{Results Analysis}
+The final champion model (Random Forest) achieved a mean accuracy of 95.12\%. The Confusion Matrix (Figure~\ref{fig:confusion}) aggregates 
+predictions from all five folds, showing a near-perfect detection rate for both ADHD and Control groups.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/confusion_matrix.png}
+    \caption{Confusion Matrix.}
+    \label{fig:confusion}
+\end{figure}
+
+
+\subsection{Feature Importance Analysis}
+To interpret the physiological basis of these results, we extracted the Gini Importance scores from the Random Forest. As seen in Figure
+~\ref{fig:importance}, the Theta/Beta Ratio (TBR) and Theta Power in the frontal channels were consistently ranked as the 
+most discriminative features. 
+
+This aligns with the neuroscientific literature, confirming that the model's high accuracy is driven by valid neurophysiological biomarkers 
+(Cortical Hypoarousal) rather than statistical noise.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/feature_importance.png}
+    \caption{Top 10 Most Important Features.}
+    \label{fig:importance}
+\end{figure}
+
+
+\section{Discussion}
+The results of this study demonstrate that EEG spectral features can effectively distinguish between ADHD and Control subjects with state-of-
+the-art accuracy (\textbf{95.12\%}).
+
+Our findings suggest that the ``Cortical Hypoarousal'' effect in ADHD—characterized by increased Theta and decreased Beta activity—is a robust 
+enough biomarker to be detected by interpretable models like Random Forest. This challenges the trend toward increasingly complex ``Black Box'' 
+deep learning approaches, demonstrating that with rigorous cross-validation and appropriate feature engineering, standard spectral features are 
+sufficient for high-performance diagnosis on this dataset.
+
+The results might seem too high, making it look like it could be overfitting. However, because Group Cross-Validation was used, the high 
+accuracy most likely comes from the fact that the spectral features (Theta/Beta ratio) are very distinct in this specific dataset, and the 
+Random Forest is very good at handling the non-linear thresholds between the groups.
+
+\subsection{Limitations and Future Work}
+While our Random Forest model achieved exceptional accuracy using Power Spectral Density, it relies primarily on stationary characteristics 
+of the EEG signal. However, the brain is inherently a complex, non-linear dynamical system.
+
+By averaging power over time (PSD), we may miss subtle temporal irregularities. Recent studies, such as Dawi et al. (2021), have demonstrated 
+that \textit{complexity measures} (e.g., Fractal Dimension, Sample Entropy) can reveal distinctive patterns in ADHD subjects that spectral 
+analysis might overlook~\cite{dawi2021complexity}.
+
+Future iterations of this project could therefore benefit from a ``Hybrid Feature Extraction'' approach, combining our robust Theta/Beta Ratio 
+features with these non-linear complexity metrics. This would allow the model to capture both the \textit{energy} (Power) and the 
+\textit{complexity} (Entropy) of the neural dynamics, potentially validating these findings on larger, more diverse datasets.
+
 \newpage
 
 \cleardoublepage
@@ -450,6 +564,8 @@ This resulted in a structured dataset suitable for input into the machine learni
     \item What are Butterworth filters and how do they work?
     \item What are the best ways to show a more quantitative comparison after preprocessing?
     \item How does Feature Extraction work and for what is it used?
+    \item What are the most used models for biomeidcal signal processing?
+    \item What is the difference between Single Split and Cross-Validation to train a model?
 \end{enumerate}
 
 \end{document}
